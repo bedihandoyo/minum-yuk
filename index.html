@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💧 Minum Yuk!</title>
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        text-align: center;
+        background: linear-gradient(to bottom, #a7ffeb, #e0f7fa);
+        padding: 20px;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    h1 {
+        color: #00695c;
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+    p {
+        font-size: 1.2rem;
+        margin: 5px 0 20px;
+    }
+    .progress-container {
+        width: 90%;
+        margin: auto;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 25px;
+        overflow: hidden;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+    }
+    .progress-bar {
+        height: 30px;
+        background: linear-gradient(90deg, #00bfa5, #26a69a);
+        width: 0%;
+        transition: width 0.5s ease;
+    }
+    button {
+        margin-top: 30px;
+        padding: 15px 25px;
+        font-size: 1rem;
+        background: linear-gradient(90deg, #26a69a, #00bfa5);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        box-shadow: 0 5px 15px rgba(0, 150, 136, 0.4);
+        transition: transform 0.2s ease;
+    }
+    button:hover {
+        transform: scale(1.05);
+    }
+    button:disabled {
+        background: gray;
+        cursor: not-allowed;
+    }
+    .emoji {
+        font-size: 4rem;
+        margin-top: 15px;
+        animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+</style>
+</head>
+<body>
+
+<h1>💧 Minum Yuk!</h1>
+<p>Target: 8 gelas per hari</p>
+
+<div class="progress-container">
+    <div class="progress-bar" id="progress-bar"></div>
+</div>
+<p id="counter">0 / 8 gelas</p>
+
+<button id="drink-btn">+ 1 Gelas</button>
+<div class="emoji">🥤</div>
+
+<script>
+    let count = 0;
+    const max = 8;
+    const counterEl = document.getElementById('counter');
+    const progressBar = document.getElementById('progress-bar');
+    const btn = document.getElementById('drink-btn');
+    const emoji = document.querySelector('.emoji');
+
+    // Load data dari localStorage
+    let savedData = JSON.parse(localStorage.getItem('minumData'));
+    let today = new Date().toDateString();
+
+    if (savedData && savedData.date === today) {
+        count = savedData.count;
+    } else {
+        localStorage.setItem('minumData', JSON.stringify({ date: today, count: 0 }));
+    }
+
+    updateUI();
+
+    btn.addEventListener('click', () => {
+        if (count < max) {
+            count++;
+            saveData();
+            updateUI();
+            emoji.textContent = "💧";
+            setTimeout(() => emoji.textContent = "🥤", 1000);
+        }
+        if (count === max) {
+            btn.disabled = true;
+            alert("🎉 Selamat! Target 8 gelas tercapai hari ini!");
+            emoji.textContent = "🏆";
+        }
+    });
+
+    function saveData() {
+        localStorage.setItem('minumData', JSON.stringify({ date: today, count: count }));
+    }
+
+    function updateUI() {
+        counterEl.textContent = `${count} / ${max} gelas`;
+        progressBar.style.width = `${(count / max) * 100}%`;
+    }
+
+    // Notifikasi Browser
+    if (Notification.permission !== "granted") {
+        Notification.requestPermission();
+    }
+
+    function sendReminder() {
+        if (Notification.permission === "granted" && count < max) {
+            new Notification("💧 Minum Yuk!", { body: "Saatnya minum air sekarang!" });
+        }
+    }
+
+    // Reminder tiap 2 jam
+    setInterval(sendReminder, 2 * 60 * 60 * 1000);
+</script>
+
+</body>
+</html>
